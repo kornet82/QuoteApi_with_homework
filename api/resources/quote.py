@@ -1,6 +1,7 @@
 from api import Resource, reqparse, db
 from api.models.author import AuthorModel
 from api.models.quote import QuoteModel
+from api.schemas.quote import quote_schema, quotes_schema
 
 
 class QuoteResource(Resource):
@@ -13,16 +14,19 @@ class QuoteResource(Resource):
         """
         if author_id is None and quote_id is None:  # Если запрос приходит по url: /quotes
             quotes = QuoteModel.query.all()
-            return [quote.to_dict() for quote in quotes]  # Возвращаем ВСЕ цитаты
+            # return [quote.to_dict() for quote in quotes]  # Возвращаем ВСЕ цитаты
+            return quotes_schema.dump(quotes)  # Возвращаем ВСЕ цитаты
 
         author = AuthorModel.query.get(author_id)
         if quote_id is None:  # Если запрос приходит по url: /authors/<int:author_id>/quotes
             quotes = author.quotes.all()
-            return [quote.to_dict() for quote in quotes], 200  # Возвращаем все цитаты автора
+            # return [quote.to_dict() for quote in quotes], 200  # Возвращаем все цитаты автора
+            return quotes_schema.dump(quotes), 200  # Возвращаем все цитаты автора
 
         quote = QuoteModel.query.get(quote_id)
         if quote is not None:
-            return quote.to_dict(), 200
+            # return quote.to_dict(), 200
+            return quote_schema.dump(quote), 200
         return {"Error": "Quote not found"}, 404
 
     def post(self, author_id):
@@ -38,7 +42,7 @@ class QuoteResource(Resource):
         quote = QuoteModel(author, quote_data["text"])
         db.session.add(quote)
         db.session.commit()
-        return quote.to_dict(), 201
+        return quote_schema.dump(quote), 201
 
     def put(self, quote_id):
         parser = reqparse.RequestParser()
@@ -50,7 +54,7 @@ class QuoteResource(Resource):
         quote.author = new_data["author"]
         quote.text = new_data["text"]
         db.session.commit()
-        return quote.to_dict(), 200
+        return quote_schema.dump(quote), 200
 
     def delete(self, quote_id):
         raise NotImplemented("Метод не реализован")
