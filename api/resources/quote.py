@@ -47,12 +47,13 @@ class QuoteResource(Resource):
 
     def put(self, author_id, quote_id):
         parser = reqparse.RequestParser()
-        parser.add_argument("author_id")
+        parser.add_argument("author")
         parser.add_argument("text")
         new_data = parser.parse_args()
         print (new_data)
+        #author = AuthorModel.query.get(author_id)
         quote = QuoteModel.query.get(quote_id)
-        quote.author = new_data["author_id"]
+        quote.author_id = author_id
         quote.text = new_data["text"]
         db.session.commit()
         return quote_schema.dump(quote), 200
